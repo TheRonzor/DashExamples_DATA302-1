@@ -133,41 +133,53 @@ def echo_sample_rate(val):
     return f'Time between samples: {val}'
 
 def apply_main_layout(app: Dash) -> None:
+    content = []
+
+    greeting = html.H1('Welcome to my website!')
+    figure_title = html.H2('Here is a figure!')
+    freq_slider = dcc.Slider(id=FREQ,
+                             min=USER_INPUT[FREQ]['min'],
+                             max=USER_INPUT[FREQ]['max'],
+                             step=USER_INPUT[FREQ]['step'],
+                             value=USER_INPUT[FREQ]['init']
+                             )
+    freq_display = dcc.Markdown(id = FREQ + DISPLAY_SUFFIX,
+                                mathjax=True
+                                )
+    sample_slider = dcc.Slider(id=SAMPLE_RATE,
+                               min=USER_INPUT[SAMPLE_RATE]['min'],
+                               max=USER_INPUT[SAMPLE_RATE]['max'],
+                               step=USER_INPUT[SAMPLE_RATE]['step'],
+                               value=USER_INPUT[SAMPLE_RATE]['init'],
+                               marks=None,
+                               tooltip={'template': '{value}'}
+                               )
+    sample_display = dcc.Markdown(id=SAMPLE_RATE + DISPLAY_SUFFIX,
+                                  mathjax=True
+                                  )
+    func_display = dcc.Markdown(id=FUNC_DISPLAY,
+                                mathjax=True,
+                                style={'text-align': 'center'}
+                                )
+    
+    my_figure = dcc.Graph(id=FIG_ID,
+                          figure=make_figure()[0],
+                          mathjax = True
+                          )
+
+    content.append(greeting)
+    content.append(html.Hr())
+    content.append(figure_title)
+    content.append(freq_display)
+    content.append(freq_slider)
+    content.append(sample_display)
+    content.append(sample_slider)
+    content.append(func_display)
+    content.append(my_figure)
+
     layout = html.Div(id='main-div',
-                      children = [
-                          html.H1('Welcome to my website!'),
-                          html.Hr(),
-                          html.H2('Here is a figure!'),
-                          dcc.Markdown(id = FREQ + DISPLAY_SUFFIX,
-                                       mathjax=True
-                                       ),
-                          dcc.Slider(id=FREQ,
-                                     min=USER_INPUT[FREQ]['min'],
-                                     max=USER_INPUT[FREQ]['max'],
-                                     step=USER_INPUT[FREQ]['step'],
-                                     value=USER_INPUT[FREQ]['init']
-                                     ),
-                          dcc.Markdown(id=SAMPLE_RATE + DISPLAY_SUFFIX,
-                                       mathjax=True
-                                       ),
-                          dcc.Slider(id=SAMPLE_RATE,
-                                     min=USER_INPUT[SAMPLE_RATE]['min'],
-                                     max=USER_INPUT[SAMPLE_RATE]['max'],
-                                     step=USER_INPUT[SAMPLE_RATE]['step'],
-                                     value=USER_INPUT[SAMPLE_RATE]['init'],
-                                     marks=None,
-                                     tooltip={'template': '{value}'}
-                                     ),
-                          dcc.Markdown(id=FUNC_DISPLAY,
-                                       mathjax=True,
-                                       style={'text-align': 'center'}
-                                       ),
-                          dcc.Graph(id=FIG_ID,
-                                    figure=make_figure()[0],
-                                    mathjax = True
-                                    )
-                          ]
-    )
+                      children = content
+                      )
     app.layout = layout
     return
 
