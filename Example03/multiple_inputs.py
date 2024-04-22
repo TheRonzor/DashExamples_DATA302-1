@@ -15,9 +15,15 @@ import numpy as np
 TITLE = 'Hello World!'
 FIG_ID = 'my-first-figure'
 
+LABEL_SIZE = 18
+
 FREQ = 'sine-frequency'
 # Actually, time between samples
 SAMPLE_RATE = 'sample-rate'
+
+DISPLAY_SUFFIX = '-display'
+
+FUNC_DISPLAY = 'sine-params'
 
 # Settings for the user input (text box)
 USER_INPUT = {'id'   : 'sine-frequency',
@@ -34,7 +40,7 @@ USER_INPUT = {FREQ : {'id'   : FREQ,
               SAMPLE_RATE: {'id': SAMPLE_RATE,
                             'min': 0.001,
                             'max': 0.1,
-                            'step': 0.01,
+                            'step': 0.001,
                             'init': 0.01
                             }
                 }
@@ -61,11 +67,15 @@ def run_app() -> None:
         Output(component_id = FIG_ID,
                component_property='figure'
                ),
+        Output(component_id=FUNC_DISPLAY,
+              component_property='children'
+              ),
         Input(component_id=FREQ,
               component_property='value'
               ),
         Input(component_id=SAMPLE_RATE,
-              component_property='value')
+              component_property='value'
+              )
 )
 def make_figure(freq: str = 1, 
                 time_between_samples: str = 0.01
@@ -78,7 +88,49 @@ def make_figure(freq: str = 1,
 
     fig = px.scatter(None,x,y)
 
-    return fig
+    fig.update_layout(
+        margin={'t': 0},
+        xaxis={
+        'title': '$x$',
+        'title_font_size': LABEL_SIZE
+        },
+        yaxis={
+            'title': None
+        }
+        )
+    
+    # Since we can't rotate the existing y-label, add it this way
+    fig.add_annotation(
+        xref='paper',
+        yref='paper',
+        x=-0.03,
+        y=0.5,
+        text='$y$',
+        font_size=LABEL_SIZE,
+        showarrow=False
+    )
+
+    equation = f'$y=\sin({TAU*freq:.3f}x)$'
+    return fig, equation
+
+@callback(
+        Output(component_id=FREQ+DISPLAY_SUFFIX,
+               component_property='children'),
+        Input(component_id=FREQ,
+              component_property='value')
+)
+def echo_freq(val):
+    return f'Freq: ${val}\cdot(2\pi)$'
+
+@callback(
+        Output(component_id=SAMPLE_RATE+DISPLAY_SUFFIX,
+               component_property='children'),
+        Input(component_id=SAMPLE_RATE,
+              component_property='value'
+              )
+)
+def echo_sample_rate(val):
+    return f'Time between samples: {val}'
 
 def apply_main_layout(app: Dash) -> None:
     layout = html.Div(id='main-div',
@@ -86,20 +138,33 @@ def apply_main_layout(app: Dash) -> None:
                           html.H1('Welcome to my website!'),
                           html.Hr(),
                           html.H2('Here is a figure!'),
+                          dcc.Markdown(id = FREQ + DISPLAY_SUFFIX,
+                                       mathjax=True
+                                       ),
                           dcc.Slider(id=FREQ,
                                      min=USER_INPUT[FREQ]['min'],
                                      max=USER_INPUT[FREQ]['max'],
                                      step=USER_INPUT[FREQ]['step'],
                                      value=USER_INPUT[FREQ]['init']
                                      ),
+                          dcc.Markdown(id=SAMPLE_RATE + DISPLAY_SUFFIX,
+                                       mathjax=True
+                                       ),
                           dcc.Slider(id=SAMPLE_RATE,
                                      min=USER_INPUT[SAMPLE_RATE]['min'],
                                      max=USER_INPUT[SAMPLE_RATE]['max'],
                                      step=USER_INPUT[SAMPLE_RATE]['step'],
-                                     value=USER_INPUT[SAMPLE_RATE]['init']
+                                     value=USER_INPUT[SAMPLE_RATE]['init'],
+                                     marks=None,
+                                     tooltip={'template': '{value}'}
                                      ),
+                          dcc.Markdown(id=FUNC_DISPLAY,
+                                       mathjax=True,
+                                       style={'text-align': 'center'}
+                                       ),
                           dcc.Graph(id=FIG_ID,
-                                    figure=make_figure()
+                                    figure=make_figure()[0],
+                                    mathjax = True
                                     )
                           ]
     )
